@@ -1,0 +1,50 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+**Image Build & Structure**
+
+* Use multi‑stage builds to minimize final image size.
+* Start from minimal, official base images.
+* Pin base image digests for reproducible builds.
+* Copy only needed files; maintain strict `.dockerignore`.
+* Combine related `RUN` commands to reduce layers.
+
+
+**Performance & Resource Management**
+
+* Leverage build cache ordering for faster rebuilds.
+* Add `HEALTHCHECK` instructions for runtime monitoring.
+* Prefer distroless images for smaller attack surface.
+* Use `tmpfs` mounts for ephemeral write paths.
+
+**Configuration & Environment**
+
+* Externalize configuration via environment variables only.
+* Keep containers single‑process; one concern per image.
+* Expose and document only required ports.
+* Log to stdout/stderr; rely on platform aggregators.
+* Avoid hard‑coded hostnames or IP addresses.
+
+**CI/CD & Registry**
+
+* Tag images semantically: version, latest, commit SHA.
+* Promote images across environments using immutable tags.
+* Prune unused images and dangling layers regularly.
+* Automate rollback on failed deployment health checks.
+
+**Docker Compose**
+
+* Use Compose file latest stable version (3.9) for consistency.
+* Reference images by digest or explicit tag, not `latest`.
+* Define named volumes for persistent data; avoid anonymous volumes.
+* Create dedicated networks to isolate service groups.
+* Configure environment variables through a `.env` file; keep secrets out of compose.
+* Add `healthcheck` sections for every service; rely on health status rather than `depends_on` alone.
+* Set `restart` policies (`on-failure`, `unless-stopped`) appropriate to service role.
+* Use profiles or multiple compose files to separate dev and prod overrides.
+* Validate compose file in CI with `docker compose config`.
+* Document each service purpose and exposed port in comments.
+* Prefer build contexts pointing to Dockerfiles instead of inline build sections for reuse.
+* Use named networks and explicit aliases for service discovery.

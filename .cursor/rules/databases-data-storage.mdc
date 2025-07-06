@@ -1,0 +1,34 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+**Data Modeling**
+
+* Normalize relational schemas up to 3NF unless performance dictates denormalization.
+* Model entities with stable natural keys; avoid business‑rule composite PKs.
+* Use explicit ENUM or lookup tables for finite value sets.
+* Embrace event sourcing or append‑only logs for audit requirements.
+* Represent time zones with UTC timestamps; store timezone separately if needed.
+
+**Storage Selection & Scalability**
+
+* Choose relational for transactions, NoSQL for unstructured or high‑scale reads.
+* Match consistency, availability, latency trade‑offs to business SLAs.
+* Isolate analytical workloads on read replicas or data warehouse sinks.
+
+**Schema & Migrations**
+
+* Apply schema changes via version‑controlled migration scripts.
+* Use declarative migration tools; avoid manual SQL in pipelines.
+* Never drop columns without archival and deprecation phase.
+* Run migrations in maintenance window or online rollout with blue/green.
+* Validate migrations against staging snapshot before production.
+
+**Performance & Indexing**
+
+* Index columns used in WHERE, JOIN, ORDER BY clauses.
+* Avoid over‑indexing; monitor write amplification and storage cost.
+* Use covering indexes or materialized views for heavy read paths.
+* Profile queries with EXPLAIN; refactor N+1 patterns.
+* Cache hot reads with TTL layer; invalidate on write.

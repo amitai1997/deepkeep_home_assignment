@@ -1,0 +1,36 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+**Pipeline Design**
+
+* Trigger pipeline on every commit and pull request.
+* Build in isolated, reproducible container images.
+* Fail fast; abort pipeline after first critical error.
+* Cache dependencies and artifacts to accelerate successive runs.
+
+**Quality Gates**
+
+* Run linters and formatters before executing tests.
+* Require all unit and integration tests to pass.
+* Enforce minimum code coverage threshold in pipeline.
+* Scan dependencies and images for known vulnerabilities.
+
+**Performance & Efficiency**
+
+* Parallelize independent jobs to keep runtime under ten minutes.
+* Use test‑impact analysis to execute only affected tests.
+
+**Security & Compliance**
+
+* Inject secrets at runtime from secure vault service.
+* Sign build artifacts and generate checksums for verification.
+* Record provenance metadata for every released artifact.
+
+**Monitoring & Maintenance**
+
+* Emit pipeline metrics and alert teams on failures.
+* Auto‑rollback or block deployment on failed release stage.
+* Keep CI configuration version‑controlled and peer‑reviewed.
+* Review pipeline logs and flakiness trends each sprint.

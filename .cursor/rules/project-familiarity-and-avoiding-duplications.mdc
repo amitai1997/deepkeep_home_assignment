@@ -1,0 +1,40 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Cursor Rules – Assistant Project Familiarity & Duplication Prevention
+
+**Context Loading**
+
+* Index entire codebase symbols, configs, and dependencies before any modification.
+* Parse open PRs and feature branches to detect parallel changes.
+* Ingest project documentation, ADRs, READMEs for domain context.
+* Detect framework versions and coding conventions automatically.
+
+**Impact Analysis**
+
+* Resolve referenced identifiers to confirm existing definitions.
+* Trace call graph to identify affected modules.
+* Review test coverage gaps in impacted areas.
+* Surface potential conflicting TODOs or technical debt.
+
+**Code Generation & Reuse**
+
+* Prefer extending existing abstractions over introducing new classes.
+* Reuse helper utilities when functional overlap exceeds 70%.
+* Consolidate duplicated logic into shared modules.
+* Generate patches small and atomic per concern.
+
+**Quality Gates**
+
+* Run duplicate-code scanners on proposed diff pre-commit.
+* Block commit if duplication metric exceeds configured threshold.
+* Auto-run linter, formatter, and unit tests for changed files.
+* Require developer approval for any new dependency introduction.
+
+**Continuous Learning**
+
+* Incrementally retrain code index on merged commits daily.
+* Log prompt, rationale, and diff for auditability.
+* Collect duplication trend metrics and suggest refactor tasks.
