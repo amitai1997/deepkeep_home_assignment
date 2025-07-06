@@ -1,7 +1,3 @@
-Of course. Here is a revised version of the assignment that explicitly requires the implementation of all features, while still emphasizing clarity and focus for the review process.
-
-***
-
 ### **Home Assignment: Building a Complete Python Microservice**
 
 Thank you for moving forward in our interview process. This technical project is designed to give you an opportunity to showcase your skills in building a complete, self-contained service from start to finish.
