@@ -1,7 +1,6 @@
 """Tests for user store functionality."""
 
 from datetime import datetime, timedelta, timezone
-from unittest.mock import patch
 
 from src.store.user_store import UserStore, get_user_store
 
@@ -224,6 +223,9 @@ class TestUserStore:
             self.user_store.add_violation(user_id)
         
         user = self.user_store.get_user(user_id)
+        # Ensure timestamp attributes are not None for type checkers
+        assert user.last_violation is not None
+        assert user.blocked_until is not None
         expected_unblock_time = user.last_violation + timedelta(
             minutes=self.user_store._settings.block_minutes
         )
