@@ -185,3 +185,101 @@ class TestChatAPI:
 
         # Assertions
         assert response.status_code == 422  # Unprocessable Entity
+
+    def test_chat_endpoint_empty_message(self):
+        """Test chat endpoint with empty message."""
+        user_id = "test_user"
+
+        # Make request with empty message
+        response = self.client.post(f"/chat/{user_id}", json={"message": ""})
+
+        # Should still process (empty messages are technically valid)
+        with (
+            patch("src.api.chat.get_moderation_service") as mock_moderation,
+            patch("src.api.chat.get_openai_client") as mock_openai,
+        ):
+            mock_moderation_instance = Mock()
+            mock_moderation_instance.process_message.return_value = (False, False)
+            mock_moderation.return_value = mock_moderation_instance
+
+            mock_openai_instance = Mock()
+            mock_openai_instance.chat_completion = AsyncMock(return_value="Response")
+            mock_openai.return_value = mock_openai_instance
+
+            response = self.client.post(f"/chat/{user_id}", json={"message": ""})
+            assert response.status_code == 200
+
+    def test_chat_endpoint_special_characters_in_user_id(self):
+        """Test chat endpoint with special characters in user ID."""
+        user_id = "user@example.com"
+        message = "Hello world"
+
+        with (
+            patch("src.api.chat.get_moderation_service") as mock_moderation,
+            patch("src.api.chat.get_openai_client") as mock_openai,
+        ):
+            mock_moderation_instance = Mock()
+            mock_moderation_instance.process_message.return_value = (False, False)
+            mock_moderation.return_value = mock_moderation_instance
+
+            mock_openai_instance = Mock()
+            mock_openai_instance.chat_completion = AsyncMock(return_value="Response")
+            mock_openai.return_value = mock_openai_instance
+
+            response = self.client.post(f"/chat/{user_id}", json={"message": message})
+            assert response.status_code == 200
+
+    def test_chat_endpoint_very_long_message(self):
+        """Test chat endpoint with very long message."""
+        user_id = "test_user"
+        message = "x" * 10000  # 10k character message
+
+        with (
+            patch("src.api.chat.get_moderation_service") as mock_moderation,
+            patch("src.api.chat.get_openai_client") as mock_openai,
+        ):
+            mock_moderation_instance = Mock()
+            mock_moderation_instance.process_message.return_value = (False, False)
+            mock_moderation.return_value = mock_moderation_instance
+
+            mock_openai_instance = Mock()
+            mock_openai_instance.chat_completion = AsyncMock(return_value="Response")
+            mock_openai.return_value = mock_openai_instance
+
+            response = self.client.post(f"/chat/{user_id}", json={"message": message})
+            assert response.status_code == 200
+
+    def test_chat_endpoint_concurrent_violations(self):
+        """Test handling of concurrent violations from same user."""
+        user_id = "concurrent_violator"
+        message = "Hello user2"
+
+        with (
+            patch("src.api.chat.get_moderation_service") as mock_moderation,
+            patch("src.api.chat.get_openai_client") as mock_openai,
+        ):
+            # Setup mocks to simulate concurrent violations
+            mock_moderation_instance = Mock()
+            # First two calls return violation but not blocked
+            # Third call returns violation and blocked
+            mock_moderation_instance.process_message.side_effect = [
+                (True, False),  # First violation
+                (True, False),  # Second violation
+                (True, True),  # Third violation - blocked
+            ]
+            mock_moderation.return_value = mock_moderation_instance
+
+            mock_openai_instance = Mock()
+            mock_openai_instance.chat_completion = AsyncMock(return_value="Response")
+            mock_openai.return_value = mock_openai_instance
+
+            # Make three requests
+            for i in range(2):
+                response = self.client.post(
+                    f"/chat/{user_id}", json={"message": message}
+                )
+                assert response.status_code == 200
+
+            # Third request should be allowed but user becomes blocked
+            response = self.client.post(f"/chat/{user_id}", json={"message": message})
+            assert response.status_code == 200

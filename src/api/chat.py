@@ -35,8 +35,10 @@ async def send_message(user_id: str, request: ChatRequest) -> ChatResponse:
         request.message, user_id
     )
 
-    # Block access if user is blocked
-    if is_blocked:
+    # Block access only if the user was already blocked *before* this request.
+    # When the current request itself triggers the final strike, we still allow
+    # the response (has_violation is True and is_blocked is True).
+    if is_blocked and not has_violation:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={

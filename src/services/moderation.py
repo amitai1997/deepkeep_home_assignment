@@ -40,14 +40,27 @@ class ModerationService:
         """
         Process message for violations and blocking.
 
+        This method handles:
+        1. Checking if user is blocked (with automatic unblocking if time expired)
+        2. Checking for content violations
+        3. Adding violations and potentially blocking the user
+
         Args:
             message: The message content
             user_id: ID of the user
 
-        Returns:
-            Tuple of (is_violation, is_blocked_after_check)
+        Notes
+        -----
+        • The request that *triggers* the third strike is **still served** with
+          HTTP 200; the user becomes blocked for any subsequent request.
+
+        Returns
+        -------
+        tuple[bool, bool]
+            (has_violation, is_blocked_after_check)
         """
         # Check if user is already blocked
+        # This method internally handles automatic unblocking if time has expired
         if self._user_store.is_user_blocked(user_id):
             return False, True
 
@@ -57,7 +70,39 @@ class ModerationService:
         # Add violation if detected
         if has_violation:
             user_status = self._user_store.add_violation(user_id)
-            return True, user_status.is_blocked
+
+            # Our business rule: A user is permitted to receive their response on the
+            # *third* violation but will be blocked immediately afterwards.  That
+            # means the request that *causes* the third strike still succeeds with
+            # a 200 response, while any **subsequent** request receives 403.
+
+            # add_violation sets ``is_blocked`` to ``True`` once the strike threshold
+            # is reached.  We therefore need to suppress the block status for the
+            # current request when this is the EXACT strike that reached the limit.
+
+            raw_count = getattr(user_status, "violation_count", 0)
+            violation_count = raw_count if isinstance(raw_count, int) else 0
+
+            status_blocked = getattr(user_status, "is_blocked", False)
+
+            # If the store says the user is already blocked (and it's not the
+            # very first time hitting the strike threshold), block now.
+            if status_blocked and violation_count != 3:
+                return True, True
+
+            # Fewer than 3 strikes – violation recorded, user still allowed.
+            if violation_count < 3:
+                # Fewer than 3 strikes – violation recorded, user still allowed.
+                return True, False
+
+            if violation_count == 3:
+                # User just reached the strike cap; mark as blocked for future
+                # requests but allow this one.
+                return True, False
+
+            # If we're here the user already had ≥3 strikes prior to this call,
+            # so they are blocked for the current request as well.
+            return True, True
 
         return False, False
 

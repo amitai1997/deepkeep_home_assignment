@@ -101,3 +101,34 @@ Expected output
 
 Use these quick checks whenever you switch between modes to ensure the gateway is wired correctly.
 
+## Strike Policy & Blocking
+
+The service enforces a simple **three-strike** content-violation rule:
+
+1. If your message references another user's ID, it counts as a strike.
+2. On the **third** strike the request is still answered with HTTP 200, but the
+   user is flagged as blocked.
+3. Any subsequent request while blocked is rejected with HTTP 403.
+
+Block duration is controlled by the `BLOCK_MINUTES` environment variable
+(default **1440 min = 24 h**).  Once the timer expires the next request will
+automatically unblock the user.
+
+Example **403** error response:
+
+```json
+{
+  "detail": {
+    "error": "User is blocked",
+    "code": "USER_BLOCKED",
+    "details": "You have been temporarily blocked due to policy violations. Try again later or contact support."
+  }
+}
+```
+
+Use the admin endpoint to unblock manually:
+
+```bash
+curl -X PUT http://localhost:8000/admin/unblock/alice
+```
+

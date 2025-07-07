@@ -2,7 +2,7 @@
 
 from unittest.mock import Mock, patch
 
-from src.services.moderation import ModerationService
+from src.services.moderation import ModerationService, get_moderation_service
 
 
 class TestModerationService:
@@ -183,3 +183,91 @@ class TestModerationService:
             )
             assert has_violation is True
             assert is_blocked is True
+
+    def test_check_content_violation_partial_match(self):
+        """Test that partial matches of user IDs are detected."""
+        message = "The username user2 is mentioned here"
+        sender_id = "user1"
+        other_users = {"user2", "user3"}
+
+        with patch.object(
+            self.moderation_service._user_store,
+            "get_all_user_ids",
+            return_value=other_users | {sender_id},
+        ):
+            result = self.moderation_service.check_content_violation(message, sender_id)
+            assert result is True
+
+    def test_check_content_violation_multiple_mentions(self):
+        """Test detection when multiple user IDs are mentioned."""
+        message = "Both user2 and user3 are here"
+        sender_id = "user1"
+        other_users = {"user2", "user3", "user4"}
+
+        with patch.object(
+            self.moderation_service._user_store,
+            "get_all_user_ids",
+            return_value=other_users | {sender_id},
+        ):
+            result = self.moderation_service.check_content_violation(message, sender_id)
+            assert result is True
+
+    def test_check_content_violation_only_sender(self):
+        """Test when only sender exists in the system."""
+        message = "Hello user1, that's me!"
+        sender_id = "user1"
+
+        with patch.object(
+            self.moderation_service._user_store,
+            "get_all_user_ids",
+            return_value={sender_id},
+        ):
+            result = self.moderation_service.check_content_violation(message, sender_id)
+            assert result is False
+
+    def test_check_content_violation_special_chars_in_userid(self):
+        """Test violation detection with special characters in user IDs."""
+        message = "Hey user@example.com, how are you?"
+        sender_id = "sender@test.com"
+        other_users = {"user@example.com", "admin@site.org"}
+
+        with patch.object(
+            self.moderation_service._user_store,
+            "get_all_user_ids",
+            return_value=other_users | {sender_id},
+        ):
+            result = self.moderation_service.check_content_violation(message, sender_id)
+            assert result is True
+
+    def test_get_moderation_service(self):
+        """Test that get_moderation_service returns a ModerationService instance."""
+        service = get_moderation_service()
+        assert isinstance(service, ModerationService)
+
+    def test_check_content_violation_unicode_characters(self):
+        """Test violation detection with unicode characters."""
+        message = "Hello 用户2, nice to meet you!"
+        sender_id = "user1"
+        other_users = {"用户2", "user3"}
+
+        with patch.object(
+            self.moderation_service._user_store,
+            "get_all_user_ids",
+            return_value=other_users | {sender_id},
+        ):
+            result = self.moderation_service.check_content_violation(message, sender_id)
+            assert result is True
+
+    def test_check_content_violation_empty_message(self):
+        """Test violation detection with empty message."""
+        message = ""
+        sender_id = "user1"
+        other_users = {"user2", "user3"}
+
+        with patch.object(
+            self.moderation_service._user_store,
+            "get_all_user_ids",
+            return_value=other_users | {sender_id},
+        ):
+            result = self.moderation_service.check_content_violation(message, sender_id)
+            assert result is False
