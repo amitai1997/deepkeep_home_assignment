@@ -20,4 +20,5 @@ repos:
         entry: poetry run mypy
         language: system
         types: [python]
-        pass_filenames: true 
+        args: ["src"]
+        pass_filenames: false 
