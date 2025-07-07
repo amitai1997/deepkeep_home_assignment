@@ -15,13 +15,13 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="Chat Gateway",
         description="An intelligent chat gateway with content moderation and blocking",
-        version="0.1.0"
+        version="0.1.0",
     )
-    
+
     # Include routers
     app.include_router(chat.router)
     app.include_router(admin.router)
-    
+
     return app
 
 
