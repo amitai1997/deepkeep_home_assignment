@@ -40,6 +40,11 @@ class ModerationService:
         """
         Process message for violations and blocking.
 
+        This method handles:
+        1. Checking if user is blocked (with automatic unblocking if time expired)
+        2. Checking for content violations
+        3. Adding violations and potentially blocking the user
+
         Args:
             message: The message content
             user_id: ID of the user
@@ -48,6 +53,7 @@ class ModerationService:
             Tuple of (is_violation, is_blocked_after_check)
         """
         # Check if user is already blocked
+        # This method internally handles automatic unblocking if time has expired
         if self._user_store.is_user_blocked(user_id):
             return False, True
 
