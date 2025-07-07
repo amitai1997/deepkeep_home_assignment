@@ -83,7 +83,7 @@ project/
 | **2** | Core Domain | Implement `UserStore`, moderation logic, models, happy‑path `/chat`. Unit tests ≥60 %. |
 | **3** | Blocking Flows | Add strike logic, automatic‑unblock check, admin route; negative tests + 403 handling. |
 | **4** | OpenAI Integration & Docs | Async client with retry/back‑off, env injection; update `/chat`; draft README, finish OpenAPI tags. |
-| **5** | Hardening & Buffer | Load‑test with `locust`, improve p95 latency, reach 90 % coverage, polish README, produce final Docker run script. Extra buffer ≈ 0.5 day for surprises. |
+| **5** | Hardening & Buffer | Load‑test with `locust`, improve p95 latency, reach 90 % coverage, polish README. Extra buffer ≈ 0.5 day for surprises. |
 
 ---
 
