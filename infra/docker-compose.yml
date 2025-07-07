@@ -1,0 +1,38 @@
+version: "3.9"
+
+# ----------------------------------------------------------------------------
+# Chat Gateway – local orchestration
+# ----------------------------------------------------------------------------
+# Guidelines followed:
+# - Environment values externalised via .env (OpenAI key, mock flag, etc.)
+# - Single-process container, port 8000 exposed
+# - Health-check hits FastAPI docs endpoint
+# - Restart policy keeps dev container alive unless manually stopped
+# - Uses named network for future extensibility
+# ----------------------------------------------------------------------------
+
+services:
+  chat-gw:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    image: chat-gw:local
+    env_file:
+      - ../.env
+    environment:
+      # Fallback to 0 so real OpenAI is used unless overridden via host env
+      USE_MOCK_OPENAI: "${USE_MOCK_OPENAI:-0}"
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - chat-net
+
+networks:
+  chat-net:
+    driver: bridge 

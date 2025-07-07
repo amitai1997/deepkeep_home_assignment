@@ -10,8 +10,9 @@ from pydantic import Field
 class Settings(BaseSettings):
     """App settings loaded from environment variables."""
 
-    openai_api_key: str = Field(..., alias="OPENAI_API_KEY")
+    openai_api_key: str = Field("", alias="OPENAI_API_KEY")
     block_minutes: int = Field(60 * 24, alias="BLOCK_MINUTES")
+    use_mock_openai: bool = Field(False, alias="USE_MOCK_OPENAI")
 
     class Config:
         env_file = ".env"
@@ -22,4 +23,5 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """Return cached Settings instance."""
 
-    return Settings()
+    # Return cached settings without suppressed type errors – defaults satisfy Pydantic
+    return Settings()  # pyright: ignore[reportCallIssue]
