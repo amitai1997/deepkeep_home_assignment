@@ -60,7 +60,12 @@ class UserStore:
             user.blocked_until = now + timedelta(minutes=self._settings.block_minutes)
 
             # Informational log for observability during local runs.
-            logger.info("User '%s' blocked until %s (%d strikes)", user_id, user.blocked_until.isoformat(), user.violation_count)
+            logger.info(
+                "User '%s' blocked until %s (%d strikes)",
+                user_id,
+                user.blocked_until.isoformat(),
+                user.violation_count,
+            )
 
         return user
 

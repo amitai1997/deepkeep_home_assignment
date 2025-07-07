@@ -23,17 +23,16 @@ class TestBlockingFlowIntegration:
         """Test complete flow of user getting blocked after 3 violations."""
         user_id = "violator"
         other_user_id = "victim"
-        
+
         # First create the victim user by making a chat request
         with patch("src.api.chat.get_openai_client") as mock_openai:
             mock_openai_instance = AsyncMock()
             mock_openai_instance.chat_completion = AsyncMock(return_value="Response")
             mock_openai.return_value = mock_openai_instance
-            
+
             # Victim sends a normal message
             response = self.client.post(
-                f"/chat/{other_user_id}", 
-                json={"message": "Hello world"}
+                f"/chat/{other_user_id}", json={"message": "Hello world"}
             )
             assert response.status_code == 200
 
@@ -42,32 +41,29 @@ class TestBlockingFlowIntegration:
             mock_openai_instance = AsyncMock()
             mock_openai_instance.chat_completion = AsyncMock(return_value="Response")
             mock_openai.return_value = mock_openai_instance
-            
+
             # First violation - should succeed
             response = self.client.post(
-                f"/chat/{user_id}", 
-                json={"message": f"Hey {other_user_id}, how are you?"}
+                f"/chat/{user_id}",
+                json={"message": f"Hey {other_user_id}, how are you?"},
             )
             assert response.status_code == 200
-            
+
             # Second violation - should succeed
             response = self.client.post(
-                f"/chat/{user_id}", 
-                json={"message": f"I know {other_user_id} is here"}
+                f"/chat/{user_id}", json={"message": f"I know {other_user_id} is here"}
             )
             assert response.status_code == 200
-            
+
             # Third violation - should succeed but user is now blocked
             response = self.client.post(
-                f"/chat/{user_id}", 
-                json={"message": f"Last message to {other_user_id}"}
+                f"/chat/{user_id}", json={"message": f"Last message to {other_user_id}"}
             )
             assert response.status_code == 200
-            
+
             # Fourth attempt - should be blocked
             response = self.client.post(
-                f"/chat/{user_id}", 
-                json={"message": "I'm blocked now"}
+                f"/chat/{user_id}", json={"message": "I'm blocked now"}
             )
             assert response.status_code == 403
             response_data = response.json()
@@ -77,39 +73,37 @@ class TestBlockingFlowIntegration:
         """Test that users are automatically unblocked after the timeout period."""
         user_id = "temp_blocked_user"
         other_user_id = "other_user"
-        
+
         # Create users
         user_store = get_user_store()
         user_store.get_user(other_user_id)
-        
+
         # Block the user manually
         for _ in range(3):
             user_store.add_violation(user_id)
-        
+
         # User should be blocked
         with patch("src.api.chat.get_openai_client") as mock_openai:
             response = self.client.post(
-                f"/chat/{user_id}", 
-                json={"message": "I should be blocked"}
+                f"/chat/{user_id}", json={"message": "I should be blocked"}
             )
             assert response.status_code == 403
-        
+
         # Simulate time passing by modifying blocked_until
         user = user_store.get_user(user_id)
         user.blocked_until = datetime.now(timezone.utc) - timedelta(minutes=1)
-        
+
         # User should be automatically unblocked
         with patch("src.api.chat.get_openai_client") as mock_openai:
             mock_openai_instance = AsyncMock()
             mock_openai_instance.chat_completion = AsyncMock(return_value="Response")
             mock_openai.return_value = mock_openai_instance
-            
+
             response = self.client.post(
-                f"/chat/{user_id}", 
-                json={"message": "I should be unblocked now"}
+                f"/chat/{user_id}", json={"message": "I should be unblocked now"}
             )
             assert response.status_code == 200
-            
+
         # Verify user state was reset
         user = user_store.get_user(user_id)
         assert user.is_blocked is False
@@ -120,36 +114,32 @@ class TestBlockingFlowIntegration:
         """Test that manual unblocking properly resets user state."""
         user_id = "manually_unblocked"
         other_user_id = "other"
-        
+
         # Create users and block one
         user_store = get_user_store()
         user_store.get_user(other_user_id)
         for _ in range(3):
             user_store.add_violation(user_id)
-        
+
         # Verify user is blocked
-        response = self.client.post(
-            f"/chat/{user_id}", 
-            json={"message": "I'm blocked"}
-        )
+        response = self.client.post(f"/chat/{user_id}", json={"message": "I'm blocked"})
         assert response.status_code == 403
-        
+
         # Manually unblock
         response = self.client.put(f"/admin/unblock/{user_id}")
         assert response.status_code == 200
         response_data = response.json()
         assert response_data["violation_count"] == 0
         assert response_data["is_blocked"] is False
-        
+
         # User should be able to chat again
         with patch("src.api.chat.get_openai_client") as mock_openai:
             mock_openai_instance = AsyncMock()
             mock_openai_instance.chat_completion = AsyncMock(return_value="Response")
             mock_openai.return_value = mock_openai_instance
-            
+
             response = self.client.post(
-                f"/chat/{user_id}", 
-                json={"message": "I can chat again"}
+                f"/chat/{user_id}", json={"message": "I can chat again"}
             )
             assert response.status_code == 200
 
@@ -157,37 +147,36 @@ class TestBlockingFlowIntegration:
         """Test that a user can be blocked again after being unblocked."""
         user_id = "repeat_offender"
         other_user_id = "victim"
-        
+
         # Create users
         user_store = get_user_store()
         user_store.get_user(other_user_id)
-        
+
         # First blocking cycle
         for _ in range(3):
             user_store.add_violation(user_id)
-        
+
         # Unblock manually
         response = self.client.put(f"/admin/unblock/{user_id}")
         assert response.status_code == 200
-        
+
         # User can violate again and get blocked after 3 strikes
         with patch("src.api.chat.get_openai_client") as mock_openai:
             mock_openai_instance = AsyncMock()
             mock_openai_instance.chat_completion = AsyncMock(return_value="Response")
             mock_openai.return_value = mock_openai_instance
-            
+
             # Three more violations
             for i in range(3):
                 response = self.client.post(
-                    f"/chat/{user_id}", 
-                    json={"message": f"Violation {i+1} mentioning {other_user_id}"}
+                    f"/chat/{user_id}",
+                    json={"message": f"Violation {i+1} mentioning {other_user_id}"},
                 )
                 assert response.status_code == 200
-            
+
             # Should be blocked again
             response = self.client.post(
-                f"/chat/{user_id}", 
-                json={"message": "Blocked again"}
+                f"/chat/{user_id}", json={"message": "Blocked again"}
             )
             assert response.status_code == 403
 
@@ -202,18 +191,17 @@ class TestBlockingFlowIntegration:
         """Test that blocking state persists across multiple requests."""
         user_id = "persistent_block"
         other_user_id = "other"
-        
+
         # Create users and block one
         user_store = get_user_store()
         user_store.get_user(other_user_id)
         for _ in range(3):
             user_store.add_violation(user_id)
-        
+
         # Multiple requests should all be blocked
         for _ in range(5):
             response = self.client.post(
-                f"/chat/{user_id}", 
-                json={"message": "Still blocked"}
+                f"/chat/{user_id}", json={"message": "Still blocked"}
             )
             assert response.status_code == 403
             assert response.json()["detail"]["code"] == "USER_BLOCKED"

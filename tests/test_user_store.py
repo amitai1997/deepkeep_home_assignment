@@ -137,18 +137,19 @@ class TestUserStore:
     def test_add_violation_updates_timestamps(self):
         """Test that add_violation updates timestamps correctly."""
         user_id = "test_user"
-        
+
         # Get initial user
         user = self.user_store.get_user(user_id)
         original_created = user.created_at
         original_updated = user.updated_at
-        
+
         # Add violation after a brief pause
         import time
+
         time.sleep(0.01)  # Small delay to ensure timestamp difference
-        
+
         user = self.user_store.add_violation(user_id)
-        
+
         # Created time should not change
         assert user.created_at == original_created
         # Updated time should be newer
@@ -160,15 +161,15 @@ class TestUserStore:
     def test_blocked_user_violations_dont_increase(self):
         """Test that violations after blocking don't increase count."""
         user_id = "test_user"
-        
+
         # Block user
         for _ in range(3):
             self.user_store.add_violation(user_id)
-        
+
         user = self.user_store.get_user(user_id)
         assert user.violation_count == 3
         assert user.is_blocked is True
-        
+
         # Try to add more violations - should not increase
         # Note: In current implementation, this would increase, but process_message prevents it
         # This test documents the current behavior
@@ -178,13 +179,13 @@ class TestUserStore:
     def test_unblock_user_who_was_never_blocked(self):
         """Test unblocking a user who was never blocked."""
         user_id = "never_blocked"
-        
+
         # Create user with one violation
         self.user_store.add_violation(user_id)
-        
+
         # Unblock
         user = self.user_store.unblock_user(user_id)
-        
+
         assert user.is_blocked is False
         assert user.violation_count == 0
         assert user.blocked_until is None
@@ -194,34 +195,34 @@ class TestUserStore:
         user1 = "user1"
         user2 = "user2"
         user3 = "user3"
-        
+
         # Add different violations to each user
         self.user_store.add_violation(user1)
-        
+
         for _ in range(2):
             self.user_store.add_violation(user2)
-        
+
         for _ in range(3):
             self.user_store.add_violation(user3)
-        
+
         # Check states
         assert self.user_store.get_user(user1).violation_count == 1
         assert not self.user_store.is_user_blocked(user1)
-        
+
         assert self.user_store.get_user(user2).violation_count == 2
         assert not self.user_store.is_user_blocked(user2)
-        
+
         assert self.user_store.get_user(user3).violation_count == 3
         assert self.user_store.is_user_blocked(user3)
 
     def test_block_duration_from_settings(self):
         """Test that block duration uses the configured value."""
         user_id = "test_user"
-        
+
         # Block user
         for _ in range(3):
             self.user_store.add_violation(user_id)
-        
+
         user = self.user_store.get_user(user_id)
         # Ensure timestamp attributes are not None for type checkers
         assert user.last_violation is not None
@@ -229,7 +230,7 @@ class TestUserStore:
         expected_unblock_time = user.last_violation + timedelta(
             minutes=self.user_store._settings.block_minutes
         )
-        
+
         # Allow for small time differences due to execution
         assert abs((user.blocked_until - expected_unblock_time).total_seconds()) < 1
 
@@ -237,17 +238,17 @@ class TestUserStore:
         """Test that get_user_store returns the same instance."""
         store1 = get_user_store()
         store2 = get_user_store()
-        
+
         assert store1 is store2
 
     def test_concurrent_violations_race_condition(self):
         """Test handling of concurrent violations (documenting current behavior)."""
         user_id = "concurrent_user"
-        
+
         # Simulate rapid violations
         for _ in range(5):
             self.user_store.add_violation(user_id)
-        
+
         user = self.user_store.get_user(user_id)
         # User will have 5 violations (no protection against concurrent access)
         assert user.violation_count == 5
@@ -258,10 +259,10 @@ class TestUserStore:
         # Add some users
         for i in range(5):
             self.user_store.get_user(f"user{i}")
-        
+
         assert len(self.user_store.get_all_user_ids()) == 5
-        
+
         # Clear all users
         self.user_store._users.clear()
-        
+
         assert len(self.user_store.get_all_user_ids()) == 0
