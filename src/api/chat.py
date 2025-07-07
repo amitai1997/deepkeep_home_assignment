@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException, status
 import httpx
 
-from ..models.schemas import ChatRequest, ChatResponse, ErrorResponse
+from ..models.schemas import ChatRequest, ChatResponse
 from ..services.moderation import get_moderation_service
 from ..services.openai_client import get_openai_client
 

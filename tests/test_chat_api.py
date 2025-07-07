@@ -1,6 +1,5 @@
 """Tests for chat API endpoints."""
 
-import pytest
 from unittest.mock import Mock, patch, AsyncMock
 from fastapi.testclient import TestClient
 import httpx

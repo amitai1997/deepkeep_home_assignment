@@ -1,11 +1,8 @@
 """Tests for user store functionality."""
 
-import pytest
 from datetime import datetime, timedelta, timezone
-from unittest.mock import patch
 
 from src.store.user_store import UserStore
-from src.models.schemas import UserStatus
 
 
 class TestUserStore:

@@ -1,10 +1,8 @@
 """Tests for moderation service."""
 
-import pytest
 from unittest.mock import Mock, patch
 
 from src.services.moderation import ModerationService
-from src.store.user_store import UserStore
 
 
 class TestModerationService:

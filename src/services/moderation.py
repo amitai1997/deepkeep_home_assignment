@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Set
 
 from ..store.user_store import get_user_store
 

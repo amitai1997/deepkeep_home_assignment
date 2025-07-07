@@ -2,15 +2,25 @@
 
 from __future__ import annotations
 
-import asyncio
-from typing import Any, Dict
-
+from typing import Protocol
 import httpx
 
 from ..core.config import get_settings
 
 
-class OpenAIClient:
+# Public protocol for both real and mock clients – keeps static type checkers
+# happy without forcing inheritance.
+
+
+class OpenAIClientProtocol(Protocol):
+    """Minimal contract shared by real and mock OpenAI clients."""
+
+    async def chat_completion(self, message: str) -> str:  # noqa: D401
+        """Return the assistant response as plain text."""
+        ...
+
+
+class OpenAIClient(OpenAIClientProtocol):
     """Async client for OpenAI API calls."""
     
     def __init__(self) -> None:
@@ -65,6 +75,43 @@ class OpenAIClient:
                 raise ValueError(f"Unexpected OpenAI response format: {e}") from e
 
 
-def get_openai_client() -> OpenAIClient:
-    """Get OpenAI client instance."""
+# ---------------------------------------------------------------------------
+# Mock implementation — used during development/testing to avoid real API calls
+# ---------------------------------------------------------------------------
+
+
+class MockOpenAIClient:
+    """Lightweight mock that mimics :class:`OpenAIClient` without network I/O.
+
+    Echoes back the caller's message so that the rest of the system can
+    continue to function during local development or testing sessions where
+    making real OpenAI requests would be expensive.
+    """
+
+    async def chat_completion(self, message: str) -> str:  # noqa: D401
+        """Return a deterministic mock response without external calls."""
+
+        return f"[MOCK] Echo: {message}"
+
+
+def get_openai_client() -> OpenAIClientProtocol:  # noqa: D401
+    """Get OpenAI client instance.
+
+    If the ``USE_MOCK_OPENAI`` environment variable (or corresponding
+    configuration flag) is truthy, a :class:`MockOpenAIClient` is returned
+    instead of the real networked client. This makes it trivial to run the
+    service locally without an API key while still exercising the surrounding
+    business logic.
+
+    # type: ignore[override] – runtime returns an implementation compatible with
+    # ``OpenAIClientProtocol`` (either real or mock). Annotated below for static
+    # analyzers.
+    """
+
+    settings = get_settings()
+
+    # The attribute is added to ``Settings`` in ``core.config``.
+    if getattr(settings, "use_mock_openai", False):  # pragma: no cover
+        return MockOpenAIClient()
+
     return OpenAIClient()
