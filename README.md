@@ -132,3 +132,8 @@ Use the admin endpoint to unblock manually:
 curl -X PUT http://localhost:8000/admin/unblock/alice
 ```
 
+### Additional environment variables
+
+- `OPENAI_TIMEOUT` – request timeout in seconds (default `30`)
+- `OPENAI_RETRIES` – number of retry attempts for OpenAI calls (default `3`)
+

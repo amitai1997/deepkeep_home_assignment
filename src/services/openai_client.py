@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Protocol, Any
+import asyncio
 import httpx
 
 from ..core.config import get_settings
@@ -27,7 +28,8 @@ class OpenAIClient(OpenAIClientProtocol):
         """Initialize the OpenAI client."""
         self._settings = get_settings()
         self._base_url = "https://api.openai.com/v1"
-        self._timeout = 30.0
+        self._timeout = self._settings.openai_timeout
+        self._retries = self._settings.openai_retries
 
     async def chat_completion(self, message: str) -> str:
         """
@@ -55,20 +57,26 @@ class OpenAIClient(OpenAIClientProtocol):
         }
 
         async with httpx.AsyncClient(timeout=self._timeout) as client:
-            try:
-                response = await client.post(
-                    f"{self._base_url}/chat/completions", headers=headers, json=payload
-                )
-                response.raise_for_status()
+            for attempt in range(1, self._retries + 1):
+                try:
+                    response = await client.post(
+                        f"{self._base_url}/chat/completions",
+                        headers=headers,
+                        json=payload,
+                    )
+                    response.raise_for_status()
 
-                data: dict[str, Any] = response.json()
-                return str(data["choices"][0]["message"]["content"]).strip()
+                    data: dict[str, Any] = response.json()
+                    return str(data["choices"][0]["message"]["content"]).strip()
 
-            except httpx.HTTPError as e:
-                # Re-raise with more context
-                raise httpx.HTTPError(f"OpenAI API request failed: {e}") from e
-            except (KeyError, IndexError) as e:
-                raise ValueError(f"Unexpected OpenAI response format: {e}") from e
+                except httpx.HTTPError as e:
+                    if attempt == self._retries:
+                        raise httpx.HTTPError(f"OpenAI API request failed: {e}") from e
+                    await asyncio.sleep(2 ** (attempt - 1))
+                except (KeyError, IndexError) as e:
+                    raise ValueError(f"Unexpected OpenAI response format: {e}") from e
+
+            raise httpx.HTTPError("OpenAI API request failed")
 
 
 # ---------------------------------------------------------------------------

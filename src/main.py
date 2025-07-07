@@ -12,10 +12,17 @@ def create_app() -> FastAPI:
     """Create FastAPI application."""
 
     _ = get_settings()  # pragma: no cover
+
+    tags_metadata = [
+        {"name": "chat", "description": "Send messages through the OpenAI proxy."},
+        {"name": "admin", "description": "Administrative operations."},
+    ]
+
     app = FastAPI(
         title="Chat Gateway",
         description="An intelligent chat gateway with content moderation and blocking",
         version="0.1.0",
+        openapi_tags=tags_metadata,
     )
 
     # Include routers
