@@ -23,5 +23,5 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """Return cached Settings instance."""
 
-    return Settings()  # type: ignore[arg-type, call-arg]
-    # mypy/pyright sometimes assume required fields even when defaults exist.
+    # Return cached settings without suppressed type errors – defaults satisfy Pydantic
+    return Settings()  # pyright: ignore[reportCallIssue]

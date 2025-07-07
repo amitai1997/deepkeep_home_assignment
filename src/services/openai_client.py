@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Protocol
+from typing import Protocol, Any
 import httpx
 
 from ..core.config import get_settings
@@ -61,8 +61,8 @@ class OpenAIClient(OpenAIClientProtocol):
                 )
                 response.raise_for_status()
 
-                data = response.json()
-                return data["choices"][0]["message"]["content"].strip()
+                data: dict[str, Any] = response.json()
+                return str(data["choices"][0]["message"]["content"]).strip()
 
             except httpx.HTTPError as e:
                 # Re-raise with more context
