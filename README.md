@@ -1,7 +1,7 @@
 # Chat Gateway
 
 Minimal FastAPI service used for the home assignment. The project is split into
-`src/`, `tests/`, `docs/`, and `infra/` following the project plan.
+`src/`, `tests/` and `infra/` following the project plan.
 
 ## Quick start
 
@@ -29,7 +29,7 @@ to run entirely offline.
 
 1. **Create a dedicated dotenv for bare-metal work**
 
-   ```bash
+```bash
    cp .env.example .env.local  # start from the defaults
    ```
 
@@ -42,7 +42,7 @@ to run entirely offline.
 
 2. **Launch a throw-away Postgres container that listens on localhost**
 
-   ```bash
+```bash
    docker run --rm -d -p 5432:5432 \
      -e POSTGRES_USER=user \
      -e POSTGRES_PASSWORD=pass \
@@ -54,7 +54,7 @@ to run entirely offline.
 
 3. **Install dependencies and start the FastAPI app**
 
-   ```bash
+```bash
    poetry install         # only needed once
    poetry run uvicorn src.main:app --reload --env-file .env.local
    ```
