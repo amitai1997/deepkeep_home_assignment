@@ -1,4 +1,4 @@
-"""Database-backed user store."""
+"""Database-backed user repository."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from ..db.session import async_session_maker
 logger = logging.getLogger(__name__)
 
 
-class UserStore:
+class UserRepository:
     """User violation tracking backed by a database."""
 
     def __init__(
@@ -42,7 +42,8 @@ class UserStore:
                 session.add(user)
                 await session.commit()
                 await session.refresh(user)
-            return user  # type: ignore[no-any-return]
+            assert user is not None
+            return user
 
     async def add_violation(self, user_id: str) -> User:
         async with self._session_factory() as session:
@@ -70,16 +71,20 @@ class UserStore:
                 user.blocked_until = now + timedelta(
                     minutes=self._settings.block_minutes
                 )
+                blocked_until_str = (
+                    str(user.blocked_until) if user.blocked_until else ""
+                )
                 logger.info(
                     "User '%s' blocked until %s (%d strikes)",
                     user_id,
-                    user.blocked_until.isoformat() if user.blocked_until else "",
+                    blocked_until_str,
                     user.violation_count,
                 )
 
             await session.commit()
             await session.refresh(user)
-            return user  # type: ignore[no-any-return]
+            assert user is not None
+            return user
 
     async def is_user_blocked(self, user_id: str) -> bool:
         async with self._session_factory() as session:
@@ -117,7 +122,8 @@ class UserStore:
             user.updated_at = datetime.now(timezone.utc)
             await session.commit()
             await session.refresh(user)
-            return user  # type: ignore[no-any-return]
+            assert user is not None
+            return user
 
     async def get_all_user_ids(self) -> Set[str]:
         async with self._session_factory() as session:
@@ -136,8 +142,10 @@ class UserStore:
         user.updated_at = datetime.now(timezone.utc)
 
 
-_user_store = UserStore()
+_user_repository = UserRepository()
 
 
-def get_user_store() -> UserStore:
-    return _user_store
+def get_user_repository() -> UserRepository:  # noqa: D401
+    """Return singleton UserRepository instance."""
+
+    return _user_repository

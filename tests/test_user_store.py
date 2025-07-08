@@ -1,7 +1,7 @@
 import pytest
 from datetime import datetime, timezone, timedelta
 
-from src.store.user_store import UserStore
+from src.repository.user_repository import UserRepository as UserStore
 from src.db.models import User
 
 pytestmark = pytest.mark.asyncio
@@ -34,6 +34,7 @@ async def test_is_user_blocked_checks_expiry(user_store: UserStore):
         await user_store.add_violation("dave")
     async with user_store._session_factory() as session:  # type: ignore[attr-defined]
         user = await session.get(User, "dave")
+        assert user is not None  # Help type checker understand user is present
         user.blocked_until = datetime.now(timezone.utc) - timedelta(minutes=1)
         await session.commit()
     blocked = await user_store.is_user_blocked("dave")

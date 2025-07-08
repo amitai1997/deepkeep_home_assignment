@@ -9,7 +9,7 @@ class TestAdminAPI:
         self.client = TestClient(create_app())
 
     def test_unblock_success(self):
-        with patch("src.api.admin.get_user_store") as gst:
+        with patch("src.api.admin.get_user_repository") as gst:
             store = Mock()
             store.user_exists = AsyncMock(return_value=True)
             from types import SimpleNamespace
@@ -32,7 +32,7 @@ class TestAdminAPI:
             store.unblock_user.assert_awaited_once_with("u")
 
     def test_unblock_missing(self):
-        with patch("src.api.admin.get_user_store") as gst:
+        with patch("src.api.admin.get_user_repository") as gst:
             store = Mock()
             store.user_exists = AsyncMock(return_value=False)
             gst.return_value = store

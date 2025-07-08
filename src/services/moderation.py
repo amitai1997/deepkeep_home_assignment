@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from ..store.user_store import get_user_store, UserStore
+from ..repository.user_repository import get_user_repository, UserRepository
 
 
 class ModerationService:
     """Service for content moderation and violation detection."""
 
-    def __init__(self, store: UserStore | None = None) -> None:
-        self._user_store = store or get_user_store()
+    def __init__(self, store: UserRepository | None = None) -> None:
+        self._user_store = store or get_user_repository()
 
     async def check_content_violation(self, message: str, sender_id: str) -> bool:
         all_user_ids = await self._user_store.get_all_user_ids()

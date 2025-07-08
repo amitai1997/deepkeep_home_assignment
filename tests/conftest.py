@@ -7,7 +7,7 @@ import pytest
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
 from src.db.models import Base
-from src.store.user_store import UserStore
+from src.repository.user_repository import UserRepository
 
 os.environ.setdefault("OPENAI_API_KEY", "test-key-dummy")
 
@@ -26,13 +26,18 @@ async def session_factory():
 
 @pytest.fixture(scope="function")
 async def user_store(session_factory):
-    return UserStore(session_factory)
+    """Alias fixture returning UserRepository to keep test names unchanged."""
+
+    return UserRepository(session_factory)
 
 
 @pytest.fixture(autouse=True)
 async def patch_user_store(user_store):
     with (
-        patch("src.store.user_store._user_store", user_store),
-        patch("src.store.user_store.get_user_store", return_value=user_store),
+        patch("src.repository.user_repository._user_repository", user_store),
+        patch(
+            "src.repository.user_repository.get_user_repository",
+            return_value=user_store,
+        ),
     ):
         yield
