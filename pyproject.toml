@@ -33,6 +33,7 @@ black = "^25.1.0"
 mypy = "^1.16.1"
 pytest = "^8.4.1"
 pytest-asyncio = "^1.0.0"
+pytest-cov = "^4.1.0"
 pre-commit = "^4.2.0"
 alembic = "^1.13.1"
 aiosqlite = "^0.20.0"
@@ -51,6 +52,6 @@ ignore_missing_imports = true
 line-length = 88
 
 [tool.pytest.ini_options]
-addopts = "-q"
+addopts = "-q --cov=src"
 asyncio_mode = "auto"
 

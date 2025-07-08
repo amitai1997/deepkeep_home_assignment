@@ -15,3 +15,4 @@ poetry.lock
 .cursor/
 .cursorignore
 
+.coverage
