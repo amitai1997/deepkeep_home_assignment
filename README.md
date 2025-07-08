@@ -3,6 +3,35 @@
 Minimal FastAPI service used for the home assignment. The project is split into
 `src/`, `tests/`, `docs/`, and `infra/` following the project plan.
 
+## Approach & Design Notes
+
+This repository contains a self‑contained microservice that proxies user
+messages to the OpenAI API while enforcing a three‑strike blocking policy.  The
+design aims to be easy to read and run:
+
+- **FastAPI + Uvicorn** provide an asynchronous HTTP server.
+- **HTTPX** is used for non‑blocking calls to OpenAI.
+- **PostgreSQL** (via SQLAlchemy) stores user state so blocks survive restarts.
+- **Pytest** drives the test suite and uses an in‑memory SQLite database for
+  speed.
+- **Black**, **Ruff** and **MyPy** enforce consistent style and typing.
+
+The code is organised under `src/` where routers, services and persistence
+layers live.  `ModerationService` implements the strike logic, while
+`UserRepository` handles user records.  Both endpoints are minimal:
+
+- `POST /chat/{user_id}` – checks the message for other user IDs, increments the
+  strike counter when needed and forwards valid text to OpenAI.
+- `PUT /admin/unblock/{user_id}` – resets the counter and clears the block
+  status.
+
+Blocked users have a `blocked_until` timestamp.  Each chat request verifies if a
+block has expired and automatically unblocks the user when the time window has
+passed.  This avoids background tasks and keeps the service single‑process.
+
+Docker and docker‑compose make the whole stack (API + Postgres) runnable with a
+single command, so reviewers can start testing immediately.
+
 ## Quick start
 
 ```bash
