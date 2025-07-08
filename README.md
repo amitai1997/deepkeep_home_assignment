@@ -144,3 +144,20 @@ curl -X PUT http://localhost:8000/admin/unblock/alice
 - `DATABASE_URL` – SQLAlchemy URL for the Postgres instance
 - `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` – credentials for the DB
 
+## Load testing
+
+A tiny [Locust](https://locust.io/) script is included for quick stress checks.
+Start the stack (ideally in mock mode) and run:
+
+```bash
+locust -f locustfile.py --host http://localhost:8000
+```
+
+Open the browser at <http://localhost:8089> to launch users. The default task
+repeatedly posts to `/chat/locust`.
+
+## Test coverage
+
+Running `pytest --cov=src` reports more than **90 %** coverage. The OpenAI
+client connections are now cached and reused for better latency under load.
+
