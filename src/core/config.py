@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     )
 
     class Config:
-        env_file = ".env"
+        # env_file = ".env"  # removed – environment is fully controlled outside
         case_sensitive = True
         extra = "ignore"
 
