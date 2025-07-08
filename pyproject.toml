@@ -36,6 +36,7 @@ pytest-asyncio = "^1.0.0"
 pre-commit = "^4.2.0"
 alembic = "^1.13.1"
 aiosqlite = "^0.20.0"
+locust = "^2.26.0"
 
 [tool.black]
 line-length = 88

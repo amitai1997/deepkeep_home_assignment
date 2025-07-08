@@ -36,9 +36,7 @@ services:
     image: chat-gw:local
     env_file:
       - ../.env
-    environment:
-      # Fallback to 0 so real OpenAI is used unless overridden via host env
-      USE_MOCK_OPENAI: "${USE_MOCK_OPENAI:-0}"
+    # USE_MOCK_OPENAI is taken from .env
     ports:
       - "8000:8000"
     healthcheck:
