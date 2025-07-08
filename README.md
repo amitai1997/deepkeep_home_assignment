@@ -1,7 +1,7 @@
 # Chat Gateway
 
 Minimal FastAPI service used for the home assignment. The project is split into
-`src/`, `tests/`, `docs/`, and `infra/` following the project plan.
+`src/`, `tests/` and `infra/` following the project plan.
 
 ## Approach & Design Notes
 
@@ -58,7 +58,7 @@ to run entirely offline.
 
 1. **Create a dedicated dotenv for bare-metal work**
 
-   ```bash
+```bash
    cp .env.example .env.local  # start from the defaults
    ```
 
@@ -71,7 +71,7 @@ to run entirely offline.
 
 2. **Launch a throw-away Postgres container that listens on localhost**
 
-   ```bash
+```bash
    docker run --rm -d -p 5432:5432 \
      -e POSTGRES_USER=user \
      -e POSTGRES_PASSWORD=pass \
@@ -83,7 +83,7 @@ to run entirely offline.
 
 3. **Install dependencies and start the FastAPI app**
 
-   ```bash
+```bash
    poetry install         # only needed once
    poetry run uvicorn src.main:app --reload --env-file .env.local
    ```
@@ -105,16 +105,6 @@ to run entirely offline.
 2. Keep the same `uvicorn` command – the gateway will now proxy to OpenAI
    while still using the local Postgres.
 
-### Legacy Compose workflow (optional)
-
-For a one-command stack that includes both the API & Postgres, use
-
-```bash
-docker compose -f infra/docker-compose.yml up -d --build
-```
-
-Compose reads `.env`, so rename or copy your desired env-file to that name
-before starting the stack.
 
 ## Strike Policy & Blocking
 
@@ -168,6 +158,6 @@ repeatedly posts to `/chat/locust`.
 
 ## Test coverage
 
-Running `pytest --cov=src` reports more than **90 %** coverage. The OpenAI
+Running `poetry run pytest --cov=src` reports more than **90 %** coverage. The OpenAI
 client connections are now cached and reused for better latency under load.
 
