@@ -12,11 +12,7 @@ docker compose -f infra/docker-compose.yml up -d --build
 The stack now includes a small PostgreSQL container used for persistence. Default
 credentials live in `.env.example` and can be overridden in `.env`.
 
-Run database migrations after the containers start:
-
-```bash
-docker compose exec chat-gw alembic upgrade head
-```
+Database tables are created automatically when the service starts up.
 
 The compose file automatically builds the image and reads environment variables
 from the project-level `.env` file.  If `OPENAI_API_KEY` is set there, the

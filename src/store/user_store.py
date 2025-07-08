@@ -42,7 +42,7 @@ class UserStore:
                 session.add(user)
                 await session.commit()
                 await session.refresh(user)
-            return user
+            return user  # type: ignore[no-any-return]
 
     async def add_violation(self, user_id: str) -> User:
         async with self._session_factory() as session:
@@ -79,7 +79,7 @@ class UserStore:
 
             await session.commit()
             await session.refresh(user)
-            return user
+            return user  # type: ignore[no-any-return]
 
     async def is_user_blocked(self, user_id: str) -> bool:
         async with self._session_factory() as session:
@@ -117,7 +117,7 @@ class UserStore:
             user.updated_at = datetime.now(timezone.utc)
             await session.commit()
             await session.refresh(user)
-            return user
+            return user  # type: ignore[no-any-return]
 
     async def get_all_user_ids(self) -> Set[str]:
         async with self._session_factory() as session:
