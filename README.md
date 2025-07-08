@@ -76,16 +76,6 @@ to run entirely offline.
 2. Keep the same `uvicorn` command – the gateway will now proxy to OpenAI
    while still using the local Postgres.
 
-### Legacy Compose workflow (optional)
-
-For a one-command stack that includes both the API & Postgres, use
-
-```bash
-docker compose -f infra/docker-compose.yml up -d --build
-```
-
-Compose reads `.env`, so rename or copy your desired env-file to that name
-before starting the stack.
 
 ## Strike Policy & Blocking
 
@@ -139,6 +129,6 @@ repeatedly posts to `/chat/locust`.
 
 ## Test coverage
 
-Running `pytest --cov=src` reports more than **90 %** coverage. The OpenAI
+Running `poetry run pytest --cov=src` reports more than **90 %** coverage. The OpenAI
 client connections are now cached and reused for better latency under load.
 
