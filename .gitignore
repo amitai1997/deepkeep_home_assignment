@@ -10,3 +10,9 @@ ruff_cache/
 __pypackages__/
 poetry.lock
 
+# Keep docs and Cursor metadata only locally
+/docs/
+.cursor/
+.cursorignore
+
+.coverage
