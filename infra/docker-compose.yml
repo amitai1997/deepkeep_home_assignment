@@ -12,6 +12,23 @@ version: "3.9"
 # ----------------------------------------------------------------------------
 
 services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pass}
+      POSTGRES_DB: ${POSTGRES_DB:-chatdb}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-user}"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - chat-net
   chat-gw:
     build:
       context: ..
@@ -32,6 +49,11 @@ services:
     restart: unless-stopped
     networks:
       - chat-net
+    depends_on:
+      - postgres
+
+volumes:
+  db-data:
 
 networks:
   chat-net:

@@ -8,6 +8,7 @@ import httpx
 from ..models.schemas import ChatRequest, ChatResponse
 from ..services.moderation import get_moderation_service
 from ..services.openai_client import get_openai_client
+from ..repository.user_repository import get_user_repository
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -29,9 +30,13 @@ async def send_message(user_id: str, request: ChatRequest) -> ChatResponse:
     """
     moderation_service = get_moderation_service()
     openai_client = get_openai_client()
+    user_store = get_user_repository()
+
+    # Ensure user exists in database (creates if needed)
+    await user_store.get_user(user_id)
 
     # Process message for violations and blocking
-    has_violation, is_blocked = moderation_service.process_message(
+    has_violation, is_blocked = await moderation_service.process_message(
         request.message, user_id
     )
 

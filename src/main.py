@@ -6,6 +6,7 @@ from fastapi import FastAPI
 
 from .api import chat, admin
 from .core.config import get_settings
+from .db.session import init_db
 
 
 def create_app() -> FastAPI:
@@ -24,6 +25,11 @@ def create_app() -> FastAPI:
         version="0.1.0",
         openapi_tags=tags_metadata,
     )
+
+    @app.on_event("startup")
+    async def startup_event() -> None:
+        """Initialize database on startup."""
+        await init_db()
 
     # Include routers
     app.include_router(chat.router)

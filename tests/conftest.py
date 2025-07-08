@@ -1,34 +1,43 @@
-"""Test configuration and fixtures."""
+"""Test configuration and database fixtures."""
 
 import os
-import pytest
 from unittest.mock import patch
 
-# Set dummy environment variables for testing
+import pytest
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+
+from src.db.models import Base
+from src.repository.user_repository import UserRepository
+
 os.environ.setdefault("OPENAI_API_KEY", "test-key-dummy")
 
 
-@pytest.fixture
-def mock_settings():
-    """Mock settings for testing without requiring real environment variables."""
-    from src.core.config import Settings
-
-    with patch("src.core.config.get_settings") as mock_get_settings:
-        mock_settings = Settings(openai_api_key="test-key-dummy", block_minutes=60 * 24)
-        mock_get_settings.return_value = mock_settings
-        yield mock_settings
-
-
-@pytest.fixture
-def fresh_user_store():
-    """Provide a fresh UserStore instance for each test."""
-    from src.store.user_store import UserStore
-
-    return UserStore()
+@pytest.fixture(scope="function")
+async def session_factory():
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async_session = async_sessionmaker(
+        engine, expire_on_commit=False, class_=AsyncSession
+    )
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield async_session
+    await engine.dispose()
 
 
-@pytest.fixture
-def mock_openai_key():
-    """Set mock OpenAI API key for tests."""
-    with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key-dummy"}):
+@pytest.fixture(scope="function")
+async def user_store(session_factory):
+    """Alias fixture returning UserRepository to keep test names unchanged."""
+
+    return UserRepository(session_factory)
+
+
+@pytest.fixture(autouse=True)
+async def patch_user_store(user_store):
+    with (
+        patch("src.repository.user_repository._user_repository", user_store),
+        patch(
+            "src.repository.user_repository.get_user_repository",
+            return_value=user_store,
+        ),
+    ):
         yield
