@@ -9,6 +9,15 @@ Minimal FastAPI service used for the home assignment. The project is split into
 docker compose -f infra/docker-compose.yml up -d --build
 ```
 
+The stack now includes a small PostgreSQL container used for persistence. Default
+credentials live in `.env.example` and can be overridden in `.env`.
+
+Run database migrations after the containers start:
+
+```bash
+docker compose exec chat-gw alembic upgrade head
+```
+
 The compose file automatically builds the image and reads environment variables
 from the project-level `.env` file.  If `OPENAI_API_KEY` is set there, the
 service will run in **real** mode.  Set `USE_MOCK_OPENAI=1` (and omit the key)
@@ -136,4 +145,6 @@ curl -X PUT http://localhost:8000/admin/unblock/alice
 
 - `OPENAI_TIMEOUT` – request timeout in seconds (default `30`)
 - `OPENAI_RETRIES` – number of retry attempts for OpenAI calls (default `3`)
+- `DATABASE_URL` – SQLAlchemy URL for the Postgres instance
+- `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` – credentials for the DB
 

@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     use_mock_openai: bool = Field(False, alias="USE_MOCK_OPENAI")
     openai_timeout: float = Field(30.0, alias="OPENAI_TIMEOUT")
     openai_retries: int = Field(3, alias="OPENAI_RETRIES")
+    database_url: str = Field(
+        "postgresql+asyncpg://user:pass@db/chatdb", alias="DATABASE_URL"
+    )
 
     class Config:
         env_file = ".env"

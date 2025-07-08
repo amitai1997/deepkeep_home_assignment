@@ -26,8 +26,7 @@ async def unblock_user(user_id: str) -> UserStatus:
     """
     user_store = get_user_store()
 
-    # Check if user exists
-    if user_id not in user_store._users:
+    if not await user_store.user_exists(user_id):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={
@@ -37,7 +36,6 @@ async def unblock_user(user_id: str) -> UserStatus:
             },
         )
 
-    # Unblock the user
-    user_status = user_store.unblock_user(user_id)
+    user_status = await user_store.unblock_user(user_id)
 
-    return user_status
+    return UserStatus.model_validate(vars(user_status))

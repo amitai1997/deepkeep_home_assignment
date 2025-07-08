@@ -31,7 +31,7 @@ async def send_message(user_id: str, request: ChatRequest) -> ChatResponse:
     openai_client = get_openai_client()
 
     # Process message for violations and blocking
-    has_violation, is_blocked = moderation_service.process_message(
+    has_violation, is_blocked = await moderation_service.process_message(
         request.message, user_id
     )
 
